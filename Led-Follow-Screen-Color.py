@@ -31,15 +31,19 @@ async def effects(Client: BleakClient, mod = "80", dim = "64", speed = "00"):
     footer = bytes.fromhex("00 c5")
     await Client.write_gatt_char(uuid, header + value + bytes.fromhex(speed) + bytes.fromhex(dim) + footer)
 
-# inbuild effects: hex 01-04
-async def mic_effect(Client: BleakClient, mod = "01", speed = "f0"):
+# inbuild effects: mod 01-04; speed 01-08
+async def mic_effect(Client: BleakClient, mod = "01", level = "01"):
     if isinstance(mod, int):
         value = int(mod).to_bytes(1,"big")
     else:
         value = bytes.fromhex(mod)
-    header = bytes.fromhex("5a")
-    footer = bytes.fromhex("01 a5")
-    await Client.write_gatt_char(uuid, header + bytes.fromhex(speed) + value + footer)
+    if isinstance(level, int):
+        value1 = int(level).to_bytes(1,"big")
+    else:
+        value1 = bytes.fromhex(level)
+    header = bytes.fromhex("5a 01 f0")
+    footer = bytes.fromhex("a5")
+    await Client.write_gatt_char(uuid, header + value + value1 + footer)
 
 async def toggle_on(Client: BleakClient, _uuid = uuid) -> None:
     await Client.write_gatt_char(_uuid, bytes.fromhex(ON_HEX))
@@ -105,7 +109,7 @@ async def main(address):
         await send_color_to_device(client, "ff ff ff", "64", "00")
         #await effects(client, 2, "64", "64")
         #await effects(client, "80", "64", "00")
-        #await mic_effect(client, 4, "0a f0")
+        #await mic_effect(client, 4, "08")
         await loop_dominant_color(client, 0.12, "10", "00")
         #await toggle_off(client, uuid)
         print("Exit")
